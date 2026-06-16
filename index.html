@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>北淡院區護理人力休假儀表板</title>
+  <style>
+    :root {
+      --ink: #102a43;
+      --muted: #5f6c7b;
+      --line: #d8e1e8;
+      --surface: #f5f8fa;
+      --panel: #ffffff;
+      --teal: #12343b;
+      --red: #b42318;
+      --green: #087443;
+      --yellow: #d97706;
+      --blue: #145c72;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--surface);
+      font-family: "Microsoft JhengHei", "Noto Sans TC", Arial, sans-serif;
+      letter-spacing: 0;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: var(--teal);
+      color: white;
+      border-bottom: 1px solid rgba(255,255,255,0.16);
+    }
+    .header-inner {
+      max-width: 1520px;
+      margin: 0 auto;
+      padding: 14px 20px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 26px;
+      line-height: 1.2;
+    }
+    main {
+      max-width: 1520px;
+      margin: 0 auto;
+      padding: 16px 20px 28px;
+    }
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(220px, 320px) minmax(280px, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+      align-items: end;
+    }
+    .control {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      min-height: 74px;
+    }
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+      font-weight: 800;
+    }
+    select {
+      width: 100%;
+      min-height: 34px;
+      border: 1px solid #c8d2dc;
+      border-radius: 6px;
+      background: white;
+      color: var(--ink);
+      padding: 6px 9px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .panel {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 13px;
+      margin-bottom: 14px;
+      overflow: visible;
+    }
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    h2 {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.3;
+    }
+    .small-action {
+      border: 1px solid #cbd5e1;
+      background: white;
+      color: var(--ink);
+      border-radius: 6px;
+      min-height: 32px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 14px;
+    }
+    .table-wrap {
+      overflow: visible;
+      border: 1px solid #e5edf3;
+      border-radius: 7px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 13px;
+      background: white;
+      min-width: 0;
+    }
+    col.campus { width: 7.5%; }
+    col.department { width: 6%; }
+    col.unit { width: 7.5%; }
+    col.rate { width: 5.5%; }
+    col.gap { width: 6.5%; }
+    col.staff { width: 10%; }
+    col.shift-count { width: 6%; }
+    col.need { width: 7%; }
+    col.remaining { width: 7.5%; }
+    col.average { width: 6.5%; }
+    col.signal-col { width: 6%; }
+    col.shift-small { width: 3.7%; }
+    col.shift-total { width: 4.5%; }
+    th {
+      position: sticky;
+      z-index: 2;
+      background: #e8eef3;
+      color: #243b53;
+      border: 1px solid var(--line);
+      padding: 7px 5px;
+      text-align: center;
+      white-space: normal;
+      font-weight: 850;
+      line-height: 1.25;
+    }
+    thead tr:first-child th { top: 0; }
+    thead tr:nth-child(2) th { top: 35px; }
+    td {
+      border: 1px solid #edf2f7;
+      padding: 6px 5px;
+      vertical-align: middle;
+      white-space: normal;
+      line-height: 1.25;
+    }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .left { text-align: left; }
+    .group-head { background: #ffffff; }
+    .highlight { background: #ffff00; }
+    .shift-head,
+    .shift-cell {
+      font-size: 12px;
+    }
+    .shift-cell {
+      padding-left: 3px;
+      padding-right: 3px;
+    }
+    .emphasis-col {
+      font-weight: 850;
+      color: var(--red);
+      background: #fff4ed;
+    }
+    th.emphasis-col {
+      background: #ffe08a;
+    }
+    .signal {
+      display: inline-block;
+      color: white;
+      border-radius: 999px;
+      padding: 3px 10px;
+      min-width: 56px;
+      text-align: center;
+      font-weight: 850;
+      font-size: 13px;
+    }
+    .signal-red { background: var(--red); }
+    .signal-green { background: var(--green); }
+    .signal-yellow { background: var(--yellow); }
+    .signal-missing { background: #64748b; }
+    .chart svg {
+      width: 100%;
+      min-width: 980px;
+      height: auto;
+      display: block;
+    }
+    .axis { stroke: #94a3b8; stroke-width: 1; }
+    .gridline { stroke: #d9e2ec; stroke-dasharray: 3 3; stroke-width: 1; }
+    .bar-label {
+      fill: var(--ink);
+      font-size: 14px;
+      font-weight: 800;
+      dominant-baseline: middle;
+    }
+    .tick {
+      fill: #64748b;
+      font-size: 12px;
+    }
+    .bar-name {
+      fill: #334155;
+      font-size: 14px;
+      font-weight: 800;
+      dominant-baseline: middle;
+    }
+    @media (max-width: 1100px) {
+      .toolbar { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <h1>北淡院區護理人力休假儀表板</h1>
+    </div>
+  </header>
+  <main>
+    <section class="toolbar" aria-label="篩選列">
+      <div class="control">
+        <label for="campus">院區</label>
+        <select id="campus">
+          <option value="全部院區">全部院區</option>
+          <option value="台北院區">台北院區</option>
+          <option value="淡水院區">淡水院區</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="departmentFilter">科別</label>
+        <select id="departmentFilter"></select>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>單位明細</h2>
+        <button class="small-action" id="downloadCsv" type="button">下載 CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <colgroup>
+            <col class="campus">
+            <col class="department">
+            <col class="unit">
+            <col class="rate">
+            <col class="rate">
+            <col class="gap">
+            <col class="staff">
+            <col class="shift-count">
+            <col class="need">
+            <col class="remaining">
+            <col class="average">
+            <col class="signal-col">
+            <col class="shift-small">
+            <col class="shift-small">
+            <col class="shift-small">
+            <col class="shift-total">
+          </colgroup>
+          <thead>
+            <tr>
+              <th rowspan="2">院區</th>
+              <th rowspan="2">科別</th>
+              <th rowspan="2">單位</th>
+              <th rowspan="2" class="highlight">開床率</th>
+              <th colspan="2" class="group-head">護理人力</th>
+              <th colspan="2" class="group-head">四週可排班人力</th>
+              <th rowspan="2">四週上班<br>需要班數</th>
+              <th rowspan="2" class="emphasis-col">剩餘之休假<br>人/日/數</th>
+              <th rowspan="2">平均剩餘<br>人力</th>
+              <th rowspan="2">紅綠燈</th>
+              <th colspan="4" class="group-head shift-head">三班排班人數</th>
+            </tr>
+            <tr>
+              <th class="highlight">在職率</th>
+              <th class="highlight emphasis-col">開床-在職</th>
+              <th class="highlight">人數</th>
+              <th>可排<br>班數</th>
+              <th class="shift-head">D</th>
+              <th class="shift-head">E</th>
+              <th class="shift-head">N</th>
+              <th class="shift-head">小計</th>
+            </tr>
+          </thead>
+          <tbody id="detailBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel chart">
+      <h2 id="chartTitle">平均剩餘人力</h2>
+      <div id="riskChart"></div>
+    </section>
+  </main>
+
+  <script>
+    const DATA = [{"campus":"台北院區","shortCampus":"台北","department":"內科","unit":"10C","openRate":0.5238095238095238,"budget":23,"current":12.5,"employmentRate":0.5434782608695652,"openMinusEmployment":-0.019668737060041352,"vacancyRate":-0.019668737060041352,"scheduleStaff":11,"schedulableShifts":208,"dayShift":3,"eveningShift":2,"nightShift":2,"shiftTotal":7,"requiredShifts":196,"remainingDays":12,"avgRemaining":1.0909090909090908,"signal":"紅燈"},{"campus":"台北院區","shortCampus":"台北","department":"內科","unit":"13C","openRate":0.6904761904761905,"budget":23,"current":14,"employmentRate":0.6086956521739131,"openMinusEmployment":0.08178053830227738,"vacancyRate":0.08178053830227738,"scheduleStaff":11.5,"schedulableShifts":230,"dayShift":3.5,"eveningShift":2.5,"nightShift":2,"shiftTotal":8,"requiredShifts":224,"remainingDays":6,"avgRemaining":0.5217391304347826,"signal":"綠燈"},{"campus":"台北院區","shortCampus":"台北","department":"內科","unit":"14C","openRate":0.6666666666666667,"budget":24,"current":15.5,"employmentRate":0.6458333333333333,"openMinusEmployment":0.02083333333333348,"vacancyRate":0.02083333333333348,"scheduleStaff":13.5,"schedulableShifts":265,"dayShift":4,"eveningShift":3,"nightShift":2,"shiftTotal":9,"requiredShifts":252,"remainingDays":13,"avgRemaining":0.9629629629629629,"signal":"綠燈"},{"campus":"台北院區","shortCampus":"台北","department":"內科","unit":"2W","openRate":0.46,"budget":35,"current":15.5,"employmentRate":0.44285714285714284,"openMinusEmployment":0.017142857142857182,"vacancyRate":0.017142857142857182,"scheduleStaff":13.5,"schedulableShifts":378,"dayShift":4,"eveningShift":3,"nightShift":2,"shiftTotal":9,"requiredShifts":252,"remainingDays":18,"avgRemaining":1.3333333333333333,"signal":"紅燈"},{"campus":"台北院區","shortCampus":"台北","department":"內科","unit":"3W","openRate":0.758,"budget":35,"current":25,"employmentRate":0.7142857142857143,"openMinusEmployment":0.043714285714285706,"vacancyRate":0.043714285714285706,"scheduleStaff":23,"schedulableShifts":460,"dayShift":6.5,"eveningShift":4.5,"nightShift":4,"shiftTotal":15,"requiredShifts":420,"remainingDays":40,"avgRemaining":1.7391304347826086,"signal":"紅燈"},{"campus":"台北院區","shortCampus":"台北","department":"內科","unit":"4W","openRate":0.871,"budget":35,"current":27.5,"employmentRate":0.7857142857142857,"openMinusEmployment":0.0852857142857143,"vacancyRate":0.0852857142857143,"scheduleStaff":25.5,"schedulableShifts":510,"dayShift":7.5,"eveningShift":5.5,"nightShift":4,"shiftTotal":17,"requiredShifts":476,"remainingDays":34,"avgRemaining":1.3333333333333333,"signal":"紅燈"},{"campus":"台北院區","shortCampus":"台北","department":"內科","unit":"ICCC","openRate":0.7,"budget":18,"current":10,"employmentRate":0.5555555555555556,"openMinusEmployment":0.14444444444444438,"vacancyRate":0.14444444444444438,"scheduleStaff":9,"schedulableShifts":180,"dayShift":4.5,"eveningShift":2,"nightShift":1,"shiftTotal":7.5,"requiredShifts":180,"remainingDays":0,"avgRemaining":0,"signal":"綠燈"},{"campus":"台北院區","shortCampus":"台北","department":"外科","unit":"7W(11C)","openRate":1,"budget":26,"current":26,"employmentRate":1,"openMinusEmployment":0,"vacancyRate":0,"scheduleStaff":21,"schedulableShifts":420,"dayShift":6.5,"eveningShift":4,"nightShift":3,"shiftTotal":13.5,"requiredShifts":378,"remainingDays":42,"avgRemaining":2,"signal":"紅燈"},{"campus":"台北院區","shortCampus":"台北","department":"外科","unit":"8F","openRate":1,"budget":16,"current":13.5,"employmentRate":0.84375,"openMinusEmployment":0.15625,"vacancyRate":0.15625,"scheduleStaff":12.5,"schedulableShifts":250,"dayShift":4,"eveningShift":3,"nightShift":2,"shiftTotal":9,"requiredShifts":252,"remainingDays":-2,"avgRemaining":-0.16,"signal":"綠燈"},{"campus":"台北院區","shortCampus":"台北","department":"外科","unit":"9F","openRate":0.86,"budget":27,"current":19.5,"employmentRate":0.7222222222222222,"openMinusEmployment":0.13777777777777778,"vacancyRate":0.13777777777777778,"scheduleStaff":19.5,"schedulableShifts":390,"dayShift":6,"eveningShift":4,"nightShift":3,"shiftTotal":13,"requiredShifts":364,"remainingDays":26,"avgRemaining":1.3333333333333333,"signal":"紅燈"},{"campus":"台北院區","shortCampus":"台北","department":"外科","unit":"9C","openRate":1,"budget":23,"current":19,"employmentRate":0.8260869565217391,"openMinusEmployment":0.17391304347826086,"vacancyRate":0.17391304347826086,"scheduleStaff":19,"schedulableShifts":380,"dayShift":6,"eveningShift":4,"nightShift":3,"shiftTotal":13,"requiredShifts":364,"remainingDays":16,"avgRemaining":0.8421052631578947,"signal":"綠燈"},{"campus":"台北院區","shortCampus":"台北","department":"外科","unit":"BURN","openRate":1,"budget":20,"current":16,"employmentRate":0.8,"openMinusEmployment":0.19999999999999996,"vacancyRate":0.19999999999999996,"scheduleStaff":14,"schedulableShifts":280,"dayShift":4,"eveningShift":3,"nightShift":2,"shiftTotal":9,"requiredShifts":252,"remainingDays":28,"avgRemaining":2,"signal":"紅燈"},{"campus":"台北院區","shortCampus":"台北","department":"婦產科","unit":"5F","openRate":0.56,"budget":21,"current":13.5,"employmentRate":0.6428571428571428,"openMinusEmployment":-0.08285714285714274,"vacancyRate":-0.08285714285714274,"scheduleStaff":12.5,"schedulableShifts":250,"dayShift":3.6,"eveningShift":2.7,"nightShift":2,"shiftTotal":8.3,"requiredShifts":232.40000000000003,"remainingDays":17.599999999999966,"avgRemaining":1.4079999999999973,"signal":"紅燈"},{"campus":"台北院區","shortCampus":"台北","department":"婦產科","unit":"6F","openRate":0.736842105263158,"budget":23,"current":16.5,"employmentRate":0.7173913043478262,"openMinusEmployment":0.0194508009153318,"vacancyRate":0.0194508009153318,"scheduleStaff":14.5,"schedulableShifts":290,"dayShift":4.2,"eveningShift":2.9,"nightShift":2,"shiftTotal":9.1,"requiredShifts":254.79999999999998,"remainingDays":35.20000000000002,"avgRemaining":2.427586206896553,"signal":"紅燈"},{"campus":"台北院區","shortCampus":"台北","department":"婦產科","unit":"12C","openRate":0.7,"budget":21,"current":14,"employmentRate":0.6666666666666667,"openMinusEmployment":0.033333333333333215,"vacancyRate":0.033333333333333215,"scheduleStaff":13,"schedulableShifts":260,"dayShift":3.9,"eveningShift":2.8,"nightShift":2,"shiftTotal":8.7,"requiredShifts":243.59999999999997,"remainingDays":16.400000000000034,"avgRemaining":1.2615384615384642,"signal":"紅燈"},{"campus":"台北院區","shortCampus":"台北","department":"婦產科","unit":"DR","openRate":1,"budget":27,"current":20,"employmentRate":0.7407407407407407,"openMinusEmployment":0.2592592592592593,"vacancyRate":0.2592592592592593,"scheduleStaff":20,"schedulableShifts":400,"dayShift":4.3,"eveningShift":4.3,"nightShift":4.3,"shiftTotal":12.899999999999999,"requiredShifts":361.19999999999993,"remainingDays":38.80000000000007,"avgRemaining":1.9400000000000035,"signal":"紅燈"},{"campus":"台北院區","shortCampus":"台北","department":"婦產科","unit":"BR","openRate":1,"budget":19,"current":14,"employmentRate":0.736842105263158,"openMinusEmployment":0.26315789473684204,"vacancyRate":0.26315789473684204,"scheduleStaff":12,"schedulableShifts":240,"dayShift":3.5,"eveningShift":2.5,"nightShift":2,"shiftTotal":8,"requiredShifts":224,"remainingDays":16,"avgRemaining":1.3333333333333333,"signal":"紅燈"},{"campus":"台北院區","shortCampus":"台北","department":"兒科","unit":"13F","openRate":0.6190476190476191,"budget":24,"current":17,"employmentRate":0.7083333333333333,"openMinusEmployment":-0.08928571428571419,"vacancyRate":-0.08928571428571419,"scheduleStaff":14,"schedulableShifts":280,"dayShift":4,"eveningShift":3,"nightShift":2,"shiftTotal":9,"requiredShifts":252,"remainingDays":28,"avgRemaining":2,"signal":"紅燈"},{"campus":"台北院區","shortCampus":"台北","department":"兒科","unit":"12F","openRate":0.85,"budget":24,"current":19,"employmentRate":0.7916666666666666,"openMinusEmployment":0.05833333333333335,"vacancyRate":0.05833333333333335,"scheduleStaff":18,"schedulableShifts":360,"dayShift":5,"eveningShift":4,"nightShift":3,"shiftTotal":12,"requiredShifts":336,"remainingDays":24,"avgRemaining":1.3333333333333333,"signal":"紅燈"},{"campus":"台北院區","shortCampus":"台北","department":"兒科","unit":"11F 骨髓","openRate":0.75,"budget":19,"current":15,"employmentRate":0.7894736842105263,"openMinusEmployment":-0.03947368421052633,"vacancyRate":-0.03947368421052633,"scheduleStaff":11.5,"schedulableShifts":230,"dayShift":3.5,"eveningShift":2.5,"nightShift":2,"shiftTotal":8,"requiredShifts":224,"remainingDays":6,"avgRemaining":0.5217391304347826,"signal":"綠燈"},{"campus":"台北院區","shortCampus":"台北","department":"兒科","unit":"11F 骨髓(子項)","openRate":1,"budget":4,"current":3,"employmentRate":0.75,"openMinusEmployment":0.25,"vacancyRate":0.25,"scheduleStaff":4.5,"schedulableShifts":90,"dayShift":1,"eveningShift":1,"nightShift":1,"shiftTotal":3,"requiredShifts":84,"remainingDays":6,"avgRemaining":1.3333333333333333,"signal":"紅燈"},{"campus":"台北院區","shortCampus":"台北","department":"兒科","unit":"NBC","openRate":0.6363636363636364,"budget":50,"current":35,"employmentRate":0.7,"openMinusEmployment":-0.0636363636363636,"vacancyRate":-0.0636363636363636,"scheduleStaff":32,"schedulableShifts":640,"dayShift":7,"eveningShift":6,"nightShift":6,"shiftTotal":19,"requiredShifts":532,"remainingDays":108,"avgRemaining":3.375,"signal":"紅燈"},{"campus":"台北院區","shortCampus":"台北","department":"兒科","unit":"NICU","openRate":0.8695652173913043,"budget":50,"current":41,"employmentRate":0.8200000000000001,"openMinusEmployment":0.04956521739130426,"vacancyRate":0.04956521739130426,"scheduleStaff":39,"schedulableShifts":780,"dayShift":8,"eveningShift":8,"nightShift":8,"shiftTotal":24,"requiredShifts":672,"remainingDays":108,"avgRemaining":2.769230769230769,"signal":"紅燈"},{"campus":"台北院區","shortCampus":"台北","department":"兒科","unit":"PICU","openRate":0.5833333333333333,"budget":26,"current":15.5,"employmentRate":0.5961538461538461,"openMinusEmployment":-0.012820512820512886,"vacancyRate":-0.012820512820512886,"scheduleStaff":14.5,"schedulableShifts":290,"dayShift":4,"eveningShift":3,"nightShift":3,"shiftTotal":10,"requiredShifts":280,"remainingDays":10,"avgRemaining":0.6896551724137931,"signal":"綠燈"},{"campus":"台北院區","shortCampus":"台北","department":"急護科","unit":"MIA","openRate":0.75,"budget":22,"current":16,"employmentRate":0.7272727272727273,"openMinusEmployment":0.022727272727272707,"vacancyRate":0.022727272727272707,"scheduleStaff":15.5,"schedulableShifts":310,"dayShift":4,"eveningShift":4,"nightShift":3,"shiftTotal":11,"requiredShifts":298,"remainingDays":12,"avgRemaining":0.7741935483870968,"signal":"綠燈"},{"campus":"台北院區","shortCampus":"台北","department":"急護科","unit":"MIB","openRate":1,"budget":42,"current":37.5,"employmentRate":0.8928571428571429,"openMinusEmployment":0.1071428571428571,"vacancyRate":0.1071428571428571,"scheduleStaff":34,"schedulableShifts":680,"dayShift":9,"eveningShift":9,"nightShift":8,"shiftTotal":26,"requiredShifts":670,"remainingDays":10,"avgRemaining":0.3,"signal":"綠燈"},{"campus":"台北院區","shortCampus":"台北","department":"急護科","unit":"SICU","openRate":1,"budget":42,"current":37.5,"employmentRate":0.8928571428571429,"openMinusEmployment":0.1071428571428571,"vacancyRate":0.1071428571428571,"scheduleStaff":36,"schedulableShifts":720,"dayShift":9,"eveningShift":8,"nightShift":7,"shiftTotal":24,"requiredShifts":672,"remainingDays":48,"avgRemaining":1.3333333333333333,"signal":"紅燈"},{"campus":"台北院區","shortCampus":"台北","department":"急護科","unit":"CVIA","openRate":0.9166666666666666,"budget":29,"current":26.5,"employmentRate":0.9137931034482758,"openMinusEmployment":0.002873563218390829,"vacancyRate":0.002873563218390829,"scheduleStaff":25,"schedulableShifts":500,"dayShift":6,"eveningShift":6,"nightShift":5,"shiftTotal":17,"requiredShifts":476,"remainingDays":24,"avgRemaining":0.96,"signal":"綠燈"},{"campus":"台北院區","shortCampus":"台北","department":"急護科","unit":"CVIB","openRate":1,"budget":32,"current":30,"employmentRate":0.9375,"openMinusEmployment":0.0625,"vacancyRate":0.0625,"scheduleStaff":27.75,"schedulableShifts":555,"dayShift":7,"eveningShift":7,"nightShift":6,"shiftTotal":20,"requiredShifts":533,"remainingDays":22,"avgRemaining":0.7927927927927928,"signal":"綠燈"},{"campus":"台北院區","shortCampus":"台北","department":"無特定科別","unit":"ER","openRate":null,"budget":86,"current":70.5,"employmentRate":0.241,"openMinusEmployment":null,"vacancyRate":null,"scheduleStaff":59.5,"schedulableShifts":1190,"dayShift":14,"eveningShift":14,"nightShift":13,"shiftTotal":41,"requiredShifts":596,"remainingDays":42,"avgRemaining":0.7,"signal":"綠燈"},{"campus":"台北院區","shortCampus":"台北","department":"無特定科別","unit":"OR","openRate":null,"budget":116,"current":92.5,"employmentRate":0.7974137931034483,"openMinusEmployment":null,"vacancyRate":null,"scheduleStaff":89.5,"schedulableShifts":1790,"dayShift":59,"eveningShift":16,"nightShift":4,"shiftTotal":79,"requiredShifts":1752,"remainingDays":38,"avgRemaining":0.4245810055865922,"signal":"綠燈"},{"campus":"台北院區","shortCampus":"台北","department":"無特定科別","unit":"POR","openRate":null,"budget":21,"current":18,"employmentRate":0.8571428571428572,"openMinusEmployment":null,"vacancyRate":null,"scheduleStaff":18,"schedulableShifts":360,"dayShift":13,"eveningShift":1,"nightShift":1,"shiftTotal":15,"requiredShifts":328,"remainingDays":32,"avgRemaining":1.7777777777777777,"signal":"紅燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"內科","unit":"38W","openRate":1,"budget":27,"current":24,"employmentRate":0.8888888888888888,"openMinusEmployment":0.11111111111111116,"vacancyRate":0.11111111111111116,"scheduleStaff":23,"schedulableShifts":552,"dayShift":7,"eveningShift":5,"nightShift":4,"shiftTotal":16,"requiredShifts":448,"remainingDays":12,"avgRemaining":0.5217391304347826,"signal":"綠燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"內科","unit":"39W","openRate":1,"budget":27,"current":25,"employmentRate":0.9259259259259259,"openMinusEmployment":0.07407407407407407,"vacancyRate":0.07407407407407407,"scheduleStaff":23,"schedulableShifts":552,"dayShift":7,"eveningShift":5,"nightShift":4,"shiftTotal":16,"requiredShifts":448,"remainingDays":12,"avgRemaining":0.5217391304347826,"signal":"綠燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"內科","unit":"40W-A","openRate":0.7777777777777778,"budget":22,"current":15,"employmentRate":0.6818181818181819,"openMinusEmployment":0.09595959595959591,"vacancyRate":0.09595959595959591,"scheduleStaff":14,"schedulableShifts":336,"dayShift":4,"eveningShift":3,"nightShift":2.5,"shiftTotal":9.5,"requiredShifts":266,"remainingDays":14,"avgRemaining":1,"signal":"黃燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"內科","unit":"18W","openRate":0.8253968253968254,"budget":33,"current":24,"employmentRate":0.7272727272727273,"openMinusEmployment":0.09812409812409806,"vacancyRate":0.09812409812409806,"scheduleStaff":23,"schedulableShifts":552,"dayShift":7,"eveningShift":5,"nightShift":4,"shiftTotal":16,"requiredShifts":448,"remainingDays":12,"avgRemaining":0.5217391304347826,"signal":"綠燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"內科","unit":"40W-B","openRate":1,"budget":5,"current":4,"employmentRate":0.8,"openMinusEmployment":0.19999999999999996,"vacancyRate":0.19999999999999996,"scheduleStaff":5,"schedulableShifts":120,"dayShift":1,"eveningShift":1,"nightShift":1,"shiftTotal":3,"requiredShifts":84,"remainingDays":16,"avgRemaining":2,"signal":"紅燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"內科","unit":"31W","openRate":0.64,"budget":18,"current":8,"employmentRate":0.4444444444444444,"openMinusEmployment":0.1955555555555556,"vacancyRate":0.1955555555555556,"scheduleStaff":8.5,"schedulableShifts":170,"dayShift":2,"eveningShift":2,"nightShift":2,"shiftTotal":6,"requiredShifts":168,"remainingDays":2,"avgRemaining":0.23529411764705882,"signal":"綠燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"內科","unit":"19W","openRate":0.72,"budget":27,"current":12,"employmentRate":0.4444444444444444,"openMinusEmployment":0.27555555555555555,"vacancyRate":0.27555555555555555,"scheduleStaff":16,"schedulableShifts":320,"dayShift":6,"eveningShift":3,"nightShift":3,"shiftTotal":12,"requiredShifts":336,"remainingDays":-16,"avgRemaining":-1,"signal":"綠燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"內科","unit":"20W","openRate":0.8,"budget":19,"current":13,"employmentRate":0.6842105263157895,"openMinusEmployment":0.11578947368421055,"vacancyRate":0.11578947368421055,"scheduleStaff":12,"schedulableShifts":240,"dayShift":4,"eveningShift":2,"nightShift":2,"shiftTotal":8,"requiredShifts":224,"remainingDays":16,"avgRemaining":1.3333333333333333,"signal":"紅燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"內科","unit":"53W","openRate":0.8620689655172413,"budget":33,"current":25.5,"employmentRate":0.7727272727272727,"openMinusEmployment":0.08934169278996862,"vacancyRate":0.08934169278996862,"scheduleStaff":23.5,"schedulableShifts":470,"dayShift":7,"eveningShift":5,"nightShift":4,"shiftTotal":16,"requiredShifts":448,"remainingDays":22,"avgRemaining":0.9361702127659575,"signal":"綠燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"內科","unit":"32W","openRate":0.4736842105263158,"budget":38,"current":18,"employmentRate":0.4736842105263158,"openMinusEmployment":0,"vacancyRate":0,"scheduleStaff":17,"schedulableShifts":340,"dayShift":6,"eveningShift":4,"nightShift":2,"shiftTotal":12,"requiredShifts":336,"remainingDays":4,"avgRemaining":0.23529411764705882,"signal":"綠燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"內科","unit":"HSCT","openRate":0.25,"budget":15,"current":6,"employmentRate":0.4,"openMinusEmployment":-0.15000000000000002,"vacancyRate":-0.15000000000000002,"scheduleStaff":5,"schedulableShifts":100,"dayShift":1,"eveningShift":1,"nightShift":1,"shiftTotal":3,"requiredShifts":84,"remainingDays":16,"avgRemaining":3.2,"signal":"紅燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"外科","unit":"37W","openRate":1,"budget":29,"current":27,"employmentRate":0.9310344827586207,"openMinusEmployment":0.06896551724137934,"vacancyRate":0.06896551724137934,"scheduleStaff":24,"schedulableShifts":480,"dayShift":7,"eveningShift":5,"nightShift":4,"shiftTotal":16,"requiredShifts":444,"remainingDays":36,"avgRemaining":1.5,"signal":"紅燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"外科","unit":"36W","openRate":1,"budget":27,"current":26,"employmentRate":0.962962962962963,"openMinusEmployment":0.03703703703703698,"vacancyRate":0.03703703703703698,"scheduleStaff":23.5,"schedulableShifts":470,"dayShift":7,"eveningShift":5,"nightShift":4,"shiftTotal":16,"requiredShifts":444,"remainingDays":26,"avgRemaining":1.1,"signal":"紅燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"外科","unit":"52W","openRate":0.8076923076923077,"budget":27,"current":19,"employmentRate":0.7037037037037037,"openMinusEmployment":0.10398860398860399,"vacancyRate":0.10398860398860399,"scheduleStaff":17.5,"schedulableShifts":350,"dayShift":6,"eveningShift":4,"nightShift":3,"shiftTotal":13,"requiredShifts":448,"remainingDays":22,"avgRemaining":0.9361702127659575,"signal":"綠燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"外科","unit":"55W","openRate":0.8392857142857143,"budget":30,"current":27,"employmentRate":0.9,"openMinusEmployment":-0.06071428571428572,"vacancyRate":-0.06071428571428572,"scheduleStaff":22,"schedulableShifts":440,"dayShift":7,"eveningShift":5,"nightShift":4,"shiftTotal":16,"requiredShifts":340,"remainingDays":10,"avgRemaining":0.5714285714285714,"signal":"綠燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"婦產科","unit":"16W","openRate":0.6730769230769231,"budget":25,"current":18.5,"employmentRate":0.74,"openMinusEmployment":-0.06692307692307686,"vacancyRate":-0.06692307692307686,"scheduleStaff":17.5,"schedulableShifts":350,"dayShift":5,"eveningShift":4,"nightShift":3,"shiftTotal":12,"requiredShifts":410,"remainingDays":30,"avgRemaining":1.3636363636363635,"signal":"紅燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"婦產科","unit":"17W","openRate":0.78,"budget":25,"current":17,"employmentRate":0.6799999999999999,"openMinusEmployment":0.10000000000000009,"vacancyRate":0.10000000000000009,"scheduleStaff":16,"schedulableShifts":320,"dayShift":5,"eveningShift":4,"nightShift":3,"shiftTotal":12,"requiredShifts":312,"remainingDays":8,"avgRemaining":0.8,"signal":"綠燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"婦產科","unit":"TPICU","openRate":0.875,"budget":22,"current":13,"employmentRate":0.5909090909090908,"openMinusEmployment":0.28409090909090917,"vacancyRate":0.28409090909090917,"scheduleStaff":12,"schedulableShifts":240,"dayShift":3,"eveningShift":3,"nightShift":2,"shiftTotal":8,"requiredShifts":224,"remainingDays":16,"avgRemaining":1.3333333333333333,"signal":"紅燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"婦產科","unit":"TNBC","openRate":0.8333333333333334,"budget":19,"current":15,"employmentRate":0.7894736842105263,"openMinusEmployment":0.04385964912280704,"vacancyRate":0.04385964912280704,"scheduleStaff":11,"schedulableShifts":220,"dayShift":3,"eveningShift":3,"nightShift":2,"shiftTotal":8,"requiredShifts":224,"remainingDays":26,"avgRemaining":2.08,"signal":"紅燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"婦產科","unit":"TDR","openRate":1,"budget":14,"current":13,"employmentRate":0.9285714285714286,"openMinusEmployment":0.0714285714285714,"vacancyRate":0.0714285714285714,"scheduleStaff":11,"schedulableShifts":220,"dayShift":2,"eveningShift":2,"nightShift":2,"shiftTotal":6,"requiredShifts":196,"remainingDays":24,"avgRemaining":2.1818181818181817,"signal":"紅燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"婦產科","unit":"TBR","openRate":1,"budget":6,"current":5,"employmentRate":0.8333333333333334,"openMinusEmployment":0.16666666666666663,"vacancyRate":0.16666666666666663,"scheduleStaff":5,"schedulableShifts":100,"dayShift":2,"eveningShift":2,"nightShift":2,"shiftTotal":6,"requiredShifts":84,"remainingDays":16,"avgRemaining":3.2,"signal":"紅燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"急護科","unit":"TMIA","openRate":0.75,"budget":22,"current":16,"employmentRate":0.8076923076923077,"openMinusEmployment":-0.05769230769230771,"vacancyRate":-0.05769230769230771,"scheduleStaff":30.5,"schedulableShifts":610,"dayShift":6,"eveningShift":6,"nightShift":6,"shiftTotal":18,"requiredShifts":504,"remainingDays":106,"avgRemaining":3.4754098360655736,"signal":"紅燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"急護科","unit":"TMIB","openRate":1,"budget":42,"current":37.5,"employmentRate":0.9166666666666666,"openMinusEmployment":0.08333333333333337,"vacancyRate":0.08333333333333337,"scheduleStaff":26.5,"schedulableShifts":530,"dayShift":6,"eveningShift":6,"nightShift":5,"shiftTotal":17,"requiredShifts":476,"remainingDays":54,"avgRemaining":2.0377358490566038,"signal":"紅燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"急護科","unit":"TSNIA","openRate":0.8461538461538461,"budget":42,"current":37.5,"employmentRate":0.8405797101449275,"openMinusEmployment":0.005574136008918651,"vacancyRate":0.005574136008918651,"scheduleStaff":27,"schedulableShifts":540,"dayShift":6,"eveningShift":6,"nightShift":5,"shiftTotal":17,"requiredShifts":476,"remainingDays":64,"avgRemaining":2.3703703703703702,"signal":"紅燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"急護科","unit":"TSNIB","openRate":0.8181818181818181,"budget":29,"current":26.5,"employmentRate":0.8103448275862069,"openMinusEmployment":0.00783699059561127,"vacancyRate":0.00783699059561127,"scheduleStaff":21.5,"schedulableShifts":430,"dayShift":5,"eveningShift":5,"nightShift":4,"shiftTotal":14,"requiredShifts":392,"remainingDays":38,"avgRemaining":1.7674418604651163,"signal":"紅燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"急護科","unit":"TRCC","openRate":0.75,"budget":32,"current":30,"employmentRate":0.9166666666666666,"openMinusEmployment":-0.16666666666666663,"vacancyRate":-0.16666666666666663,"scheduleStaff":9,"schedulableShifts":180,"dayShift":3,"eveningShift":2,"nightShift":2,"shiftTotal":7,"requiredShifts":180,"remainingDays":0,"avgRemaining":0,"signal":"綠燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"急護科","unit":"TER","openRate":null,"budget":86,"current":70.5,"employmentRate":0.8061224489795918,"openMinusEmployment":null,"vacancyRate":null,"scheduleStaff":37.5,"schedulableShifts":750,"dayShift":10,"eveningShift":10,"nightShift":9,"shiftTotal":29,"requiredShifts":812,"remainingDays":-62,"avgRemaining":-1.6533333333333333,"signal":"綠燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"外科","unit":"TOR","openRate":null,"budget":116,"current":92.5,"employmentRate":0.7956989247311828,"openMinusEmployment":null,"vacancyRate":null,"scheduleStaff":68,"schedulableShifts":1460,"dayShift":42.5,"eveningShift":7.5,"nightShift":4,"shiftTotal":54,"requiredShifts":1280,"remainingDays":180,"avgRemaining":2.6,"signal":"紅燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"外科","unit":"TPOR","openRate":null,"budget":21,"current":18,"employmentRate":0.9411764705882353,"openMinusEmployment":null,"vacancyRate":null,"scheduleStaff":16,"schedulableShifts":320,"dayShift":6.5,"eveningShift":4.5,"nightShift":1,"shiftTotal":12,"requiredShifts":304,"remainingDays":16,"avgRemaining":1,"signal":"黃燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"綜合科","unit":"21W","openRate":0.944,"budget":20,"current":19,"employmentRate":0.95,"openMinusEmployment":0,"vacancyRate":0,"scheduleStaff":18,"schedulableShifts":360,"dayShift":5,"eveningShift":4,"nightShift":3,"shiftTotal":12,"requiredShifts":352,"remainingDays":8,"avgRemaining":0.4,"signal":"綠燈"},{"campus":"淡水院區","shortCampus":"淡水","department":"綜合科","unit":"34HD","openRate":null,"budget":27,"current":25,"employmentRate":92.6,"openMinusEmployment":null,"vacancyRate":null,"scheduleStaff":24,"schedulableShifts":480,"dayShift":10,"eveningShift":9,"nightShift":1,"shiftTotal":20,"requiredShifts":460,"remainingDays":20,"avgRemaining":0.8,"signal":"綠燈"}].filter((row) => row.signal !== "資料不足");
+    const state = {
+      campus: "全部院區",
+      department: "全部科別",
+      topN: 12
+    };
+    const fmt = new Intl.NumberFormat("zh-TW", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+    const pct = new Intl.NumberFormat("zh-TW", { style: "percent", maximumFractionDigits: 1, minimumFractionDigits: 1 });
+
+    function n(value) { return Number.isFinite(value) ? value : 0; }
+    function valid(value) { return Number.isFinite(value); }
+    function format(value) { return valid(value) ? fmt.format(value) : "-"; }
+    function formatPct(value) { return valid(value) ? pct.format(value) : "-"; }
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+    }
+    function signalClass(signal) {
+      if (signal === "紅燈") return "signal-red";
+      if (signal === "綠燈") return "signal-green";
+      if (signal === "黃燈") return "signal-yellow";
+      return "signal-missing";
+    }
+    function signalBadge(signal) {
+      return '<span class="signal ' + signalClass(signal) + '">' + escapeHtml(signal) + '</span>';
+    }
+    function departmentOptions() {
+      const rows = state.campus === "全部院區" ? DATA : DATA.filter((row) => row.campus === state.campus);
+      return ["全部科別", ...Array.from(new Set(rows.map((row) => row.department))).sort((a, b) => a.localeCompare(b, "zh-Hant"))];
+    }
+    function renderDepartmentSelect() {
+      const select = document.querySelector("#departmentFilter");
+      const options = departmentOptions();
+      if (!options.includes(state.department)) state.department = "全部科別";
+      select.innerHTML = options.map((department) =>
+        '<option value="' + escapeHtml(department) + '"' + (department === state.department ? " selected" : "") + '>' + escapeHtml(department) + '</option>'
+      ).join("");
+    }
+    function filteredRows() {
+      let rows = [...DATA];
+      if (state.campus !== "全部院區") rows = rows.filter((row) => row.campus === state.campus);
+      if (state.department !== "全部科別") rows = rows.filter((row) => row.department === state.department);
+      return rows.sort((a, b) => n(a.avgRemaining) - n(b.avgRemaining));
+    }
+    function chartLabel(row) {
+      return row.shortCampus + " " + row.unit;
+    }
+    function renderBar(rows) {
+      const container = document.querySelector("#riskChart");
+      const data = [...rows].slice(0, state.topN).reverse();
+      if (!data.length) {
+        container.innerHTML = '<div style="color:#64748b;padding:16px;">沒有符合篩選的資料</div>';
+        return;
+      }
+      const baseline = 1;
+      const width = 980;
+      const rowH = 36;
+      const top = 20;
+      const left = 190;
+      const right = 64;
+      const height = top + data.length * rowH + 28;
+      const values = data.map((row) => n(row.avgRemaining));
+      const min = Math.min(0, ...values, baseline);
+      const max = Math.max(2, ...values, baseline);
+      const span = max - min || 1;
+      const plotW = width - left - right;
+      const baselineX = left + ((baseline - min) / span) * plotW;
+      const ticks = [min, baseline, max];
+      const tickSvg = ticks.map((tick) => {
+        const x = left + ((tick - min) / span) * plotW;
+        return '<line class="gridline" x1="' + x + '" y1="' + (top - 8) + '" x2="' + x + '" y2="' + (height - 22) + '"></line>' +
+          '<text class="tick" x="' + x + '" y="' + (height - 4) + '" text-anchor="middle">' + format(tick) + '</text>';
+      }).join("");
+      const bars = data.map((row, idx) => {
+        const y = top + idx * rowH + 6;
+        const valueX = left + ((n(row.avgRemaining) - min) / span) * plotW;
+        const x = Math.min(baselineX, valueX);
+        const w = Math.max(2, Math.abs(valueX - baselineX));
+        const value = n(row.avgRemaining);
+        const overBaseline = value > baseline;
+        const color = value > baseline ? "#b42318" : value < baseline ? "#087443" : "#d97706";
+        const labelX = overBaseline ? x + w + 6 : x - 6;
+        const anchor = overBaseline ? "start" : "end";
+        return '<text class="bar-name" x="8" y="' + (y + 11) + '">' + escapeHtml(chartLabel(row).slice(0, 22)) + '</text>' +
+          '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="22" rx="4" fill="' + color + '"></rect>' +
+          '<text class="bar-label" x="' + labelX + '" y="' + (y + 11) + '" text-anchor="' + anchor + '">' + format(row.avgRemaining) + '</text>';
+      }).join("");
+      container.innerHTML = '<svg viewBox="0 0 ' + width + ' ' + height + '" role="img">' +
+        tickSvg +
+        '<line class="axis" x1="' + baselineX + '" y1="' + (top - 8) + '" x2="' + baselineX + '" y2="' + (height - 22) + '"></line>' +
+        bars +
+      '</svg>';
+    }
+    function renderDetails(rows) {
+      document.querySelector("#detailBody").innerHTML = rows.map((row) =>
+        '<tr>' +
+          '<td>' + escapeHtml(row.campus) + '</td>' +
+          '<td class="left">' + escapeHtml(row.department) + '</td>' +
+          '<td class="left">' + escapeHtml(row.unit) + '</td>' +
+          '<td class="num">' + formatPct(row.openRate) + '</td>' +
+          '<td class="num">' + formatPct(row.employmentRate) + '</td>' +
+          '<td class="num emphasis-col">' + formatPct(row.openMinusEmployment) + '</td>' +
+          '<td class="num">' + format(row.scheduleStaff) + '</td>' +
+          '<td class="num">' + format(row.schedulableShifts) + '</td>' +
+          '<td class="num">' + format(row.requiredShifts) + '</td>' +
+          '<td class="num emphasis-col">' + format(row.remainingDays) + '</td>' +
+          '<td class="num">' + format(row.avgRemaining) + '</td>' +
+          '<td>' + signalBadge(row.signal) + '</td>' +
+          '<td class="num shift-cell">' + format(row.dayShift) + '</td>' +
+          '<td class="num shift-cell">' + format(row.eveningShift) + '</td>' +
+          '<td class="num shift-cell">' + format(row.nightShift) + '</td>' +
+          '<td class="num shift-cell">' + format(row.shiftTotal) + '</td>' +
+        '</tr>'
+      ).join("");
+    }
+    function downloadCsv(rows) {
+      const cols = ["院區","科別","單位","開床率","在職率","開床-在職","人數","可排班數","四週上班需要班數","剩餘之休假人日數","平均剩餘人力","紅綠燈","D","E","N","小計"];
+      const keys = ["campus","department","unit","openRate","employmentRate","openMinusEmployment","scheduleStaff","schedulableShifts","requiredShifts","remainingDays","avgRemaining","signal","dayShift","eveningShift","nightShift","shiftTotal"];
+      const escapeCsv = (value) => '"' + String(value ?? "").replace(/"/g, '""') + '"';
+      const csv = [cols.join(",")].concat(rows.map((row) => keys.map((key) => escapeCsv(row[key])).join(","))).join("\n");
+      const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "nursing_dashboard_filtered.csv";
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+    function render() {
+      renderDepartmentSelect();
+      const rows = filteredRows();
+      renderBar(rows);
+      renderDetails(rows);
+      document.querySelector("#downloadCsv").onclick = () => downloadCsv(rows);
+    }
+    document.querySelector("#campus").addEventListener("change", (event) => {
+      state.campus = event.target.value;
+      state.department = "全部科別";
+      render();
+    });
+    document.querySelector("#departmentFilter").addEventListener("change", (event) => {
+      state.department = event.target.value;
+      render();
+    });
+    render();
+  </script>
+</body>
+</html>
